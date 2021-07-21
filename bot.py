@@ -1,51 +1,77 @@
 # -*- coding: utf-8 -*-
-from random import randint
+import logging
 
-import vk_api
-from vk_api import bot_longpoll
+from random import randint
+from vk_api.vk_api import VkApi
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+
+try:
+    from settings import GROUP_ID, TOKEN
+except ImportError:
+    exit('DO cp settings.py.default settings.py and set TOKEN!!')
+
+bot_logger = logging.getLogger("bot")
+
+def loggers_configure():
+    """
+    Конфигурация логгеров
+    :return: None
+    """
+
+    my_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt="%Y-%m-%d %H:%M")
+
+    file_handler = logging.FileHandler("bot.log", encoding="UTF-8")
+    file_handler.setFormatter(my_formatter)
+
+    bot_logger.addHandler(file_handler)
+    bot_logger.setLevel("DEBUG")
 
 
 class Bot:
-
+    """
+    Echo bot для вк
+    Use Python 3.9 """
     def __init__(self, group_id, token):
-
+        """
+        :param group_id: айди группы вк
+        :param token: секретный токен для работы с апи
+        """
         self.group_id = group_id
         self.token = token
-        self.vk_session = vk_api.vk_api.VkApi(token=self.token)
-        self.longpoller = vk_api.bot_longpoll.VkBotLongPoll(self.vk_session, self.group_id)
+        self.vk_session = VkApi(token=self.token)
+        self.longpoller = VkBotLongPoll(self.vk_session, self.group_id)
         self.vk_api = self.vk_session.get_api()
 
     def run(self):
+        """
+        Запуск бота
+        :return: None
+        """
         for event in self.longpoller.listen():
+            bot_logger.debug("Получен эвент")
             try:
                 self.on_event(event)
-            except Exception as exc:
-                print(exc)
+            except Exception:
+                bot_logger.exception("Ошибка при запуске")
 
     def on_event(self, event):
-        if event.type == vk_api.bot_longpoll.VkBotEventType.MESSAGE_NEW:
+        """
+        Отправка сообщения идентичного полученному
+        :param event: VkBotEventType
+        :return: None
+        """
+        if event.type == VkBotEventType.MESSAGE_NEW:
             random_id = randint(0, 2 ** 10)
+            message = event.object.message['text']
             peer_id = event.object.message['peer_id']
             self.vk_api.messages.send(random_id=random_id, peer_id=peer_id,
-                                      message='Какой дилдак вы хотите приобрести? \n 1. Конский черный \n '
-                                              '2. Большой розовый \n 3. Средний белый \n 4. Маленький желтый \n'
-                                              '5. Супер мелкий дилдак зеленого цвета \n Введите номер дилдака для выбора')
-            dildo_numbers = {'1': 'Конский черный', '2': 'Большой розовый', '3': 'Средный белый',
-                             '4': 'Маленький желтый', '5': 'Супер мелкий дилдак зеленого цвета'}
-            dildo_cost = {'1': '1000', '2': '800', '3': '600', '4': '400', '5': '200'}
+                                      message=message)
+            bot_logger.info("Отправленно сообщение")
 
-            for reply in self.longpoller.listen():
-                for number in dildo_numbers.keys():
-                    if reply.object.message['text'] == number:
-                        peer_id = reply.object.message['peer_id']
-                        random_id = randint(0, 2 ** 10)
-                        self.vk_api.messages.send(random_id=random_id, peer_id=peer_id,
-                                                  message=f'{dildo_numbers[number]} стоит {dildo_cost[number]} рублей')
-                        break
-                break
 
 
 if __name__ == '__main__':
-    bot = Bot(group_id=205911168,
-              token='d3e3dc20f6a2ee6d540489f5eba581e49ad7dcd4f54218eaa86119a96459e95852cb2517130d5714c1113')
+    loggers_configure()
+    bot = Bot(group_id=GROUP_ID,
+              token=TOKEN)
     bot.run()
