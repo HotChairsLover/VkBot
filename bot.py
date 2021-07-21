@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-
 from random import randint
-from vk_api.vk_api import VkApi
+
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+from vk_api.vk_api import VkApi
 
 try:
     from settings import GROUP_ID, TOKEN
@@ -11,6 +11,7 @@ except ImportError:
     exit('DO cp settings.py.default settings.py and set TOKEN!!')
 
 bot_logger = logging.getLogger("bot")
+
 
 def loggers_configure():
     """
@@ -31,6 +32,7 @@ class Bot:
     """
     Echo bot для вк
     Use Python 3.9 """
+
     def __init__(self, group_id, token):
         """
         :param group_id: айди группы вк
@@ -67,7 +69,6 @@ class Bot:
             self.vk_api.messages.send(random_id=random_id, peer_id=peer_id,
                                       message=message)
             bot_logger.info("Отправленно сообщение")
-
 
 
 if __name__ == '__main__':

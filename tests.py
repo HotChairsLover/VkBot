@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch, Mock, ANY
 
-import bot
 from vk_api.bot_longpoll import VkBotMessageEvent
 
 from bot import Bot
@@ -9,18 +8,19 @@ from bot import Bot
 
 class MyTestCase(unittest.TestCase):
     RAW_EVENT = {
-                'type': 'message_new',
-                'object': {
-                            'message': {'date': 1626900379, 'from_id': 233676259, 'id': 130, 'out': 0,
-                                        'peer_id': 233676259, 'text': 'УЫУЫА', 'conversation_message_id': 126,
-                                        'fwd_messages': [], 'important': False, 'random_id': 0, 'attachments': [],
-                                        'is_hidden': False},
-                            'client_info': {'button_actions':
-                                                ['text', 'vkpay', 'open_app', 'location',
-                                                 'open_link', 'callback', 'intent_subscribe', 'intent_unsubscribe'],
-                                            'keyboard': True, 'inline_keyboard': True, 'carousel': True, 'lang_id': 0}},
-                            'group_id': 205911168,
-                            'event_id': '01c602015b6e79f75e40845dd49937bc52c575d8'}
+        'type': 'message_new',
+        'object': {
+            'message': {'date': 1626900379, 'from_id': 233676259, 'id': 130, 'out': 0,
+                        'peer_id': 233676259, 'text': 'УЫУЫА', 'conversation_message_id': 126,
+                        'fwd_messages': [], 'important': False, 'random_id': 0, 'attachments': [],
+                        'is_hidden': False},
+            'client_info': {'button_actions':
+                                ['text', 'vkpay', 'open_app', 'location',
+                                 'open_link', 'callback', 'intent_subscribe', 'intent_unsubscribe'],
+                            'keyboard': True, 'inline_keyboard': True, 'carousel': True, 'lang_id': 0}},
+        'group_id': 205911168,
+        'event_id': '01c602015b6e79f75e40845dd49937bc52c575d8'}
+
     def test_run(self):
         count = 5
         obj = {}
@@ -39,7 +39,6 @@ class MyTestCase(unittest.TestCase):
                 assert bot.on_event.call_count == count
 
     def test_on_event(self):
-
         event = VkBotMessageEvent(raw=self.RAW_EVENT)
         send_mock = Mock()
         with patch('bot.VkApi'):
